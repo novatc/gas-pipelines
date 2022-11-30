@@ -2,12 +2,11 @@ import os
 
 import pandas as pd
 from matplotlib import pyplot as plt
-import seaborn as sns
 from data_preprocess import download_data, cleanup_data, save_data, normalize_data, calculate_sum_emissions, \
-    get_top_emitters
+    get_top_emitters, combine_emissions, make_directories
 import warnings
 
-from plot_service.plotting import plot_heatmap, plot_pairplot, plot_top_emitters, plot_historgam
+from plot_service.plotting import plot_heatmap, plot_pairplot, plot_top_emitters, plot_historgam, plot_correlation
 
 co2_data_dict = "data/co2_emissions_raw.zip"
 ch4_data_dict = "data/ch4_emissions_raw.zip"
@@ -21,10 +20,7 @@ ch4_data_url = "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/EDGAR/datasets/
 warnings.filterwarnings("ignore")
 
 # create data directory
-os.makedirs("emissions_raw", exist_ok=True)
-os.makedirs("data", exist_ok=True)
-os.makedirs("clean", exist_ok=True)
-os.makedirs("clean/images/", exist_ok=True)
+make_directories()
 
 
 download_data(co2_data_url, co2_data_dict)
@@ -49,45 +45,34 @@ ch4_top_emitters = get_top_emitters(ch4_df, 5)
 plot_top_emitters(co2_top_emitters, "clean/images/co2_top_emitters.png")
 plot_top_emitters(ch4_top_emitters, "clean/images/ch4_top_emitters.png")
 
+grouped_c02 = co2_df.groupby(co2_df.index).sum()
+grouped_ch4 = ch4_df.groupby(ch4_df.index).sum()
+
+plot_heatmap(grouped_c02, "clean/images/grouped_c02_heatmap.png")
+plot_heatmap(grouped_ch4, "clean/images/ch4_heatmap.png")
+
+plot_heatmap(co2_top_emitters, "clean/images/heatmap/co2_top_emitters_heatmap.png")
+plot_heatmap(ch4_top_emitters, "clean/images/heatmap/ch4_top_emitters_heatmap.png")
+
+# add string to column names in dataframes co2_top_emitters and ch4_top_emitters to make them unique
+co2_top_emitters.columns = [str(col) + '_co2' for col in co2_top_emitters.columns]
+ch4_top_emitters.columns = [str(col) + '_ch4' for col in ch4_top_emitters.columns]
+
+top_emitters = co2_top_emitters.merge(ch4_top_emitters, left_index=True, right_index=True, how="outer")
+save_data(top_emitters, "clean/top_emitters.csv")
+
+# create new df for each country that is contained in top_emitters with the ending _co2 and _ch4
+# and merge them together and save as csv
+
+dict_of_countries= combine_emissions(top_emitters)
+
+for country in dict_of_countries:
+    plot_correlation(dict_of_countries[country], f"clean/images/correlation/{country}.jpg")
 
 
-# # group by index
-# co2_grouped = co2_df.groupby("C_group_IM24_sh").sum()
-# co2_grouped_contry = co2_df.groupby("Name").sum()
-#
-# ch4_grouped = ch4_df.groupby("C_group_IM24_sh").sum()
-# ch4_grouped_contry = ch4_df.groupby("Name").sum()
-#
-# save_data(co2_grouped, "clean/co2_grouped.csv")
-# save_data(co2_grouped_contry, "clean/co2_grouped_country.csv")
-#
-# save_data(ch4_grouped, "clean/ch4_grouped.csv")
-# save_data(ch4_grouped_contry, "clean/ch4_grouped_country.csv")
-#
-# # normalize data
-# co2_grouped_norm = normalize_data(co2_grouped)
-# co2_grouped_norm_contry = normalize_data(co2_grouped_contry)
-#
-# ch4_grouped_norm = normalize_data(ch4_grouped)
-# ch4_grouped_norm_contry = normalize_data(ch4_grouped_contry)
-#
-# sum_ch4 = calculate_sum_emissions(ch4_grouped)
-# sum_co2 = calculate_sum_emissions(co2_grouped)
-#
-# # combine dataframes to one
-# sum_df = pd.concat([sum_ch4, sum_co2], axis=1)
-# sum_df.columns = ["CH4", "CO2"]
-#
-#
-# top_5_co2 = get_top_emitters(co2_grouped_contry, 5)
-# top_5_ch4 = get_top_emitters(ch4_grouped_contry, 5)
-# plot_top_emitters(top_5_co2, "clean/images/top_5_co2.png")
-# plot_top_emitters(top_5_ch4, "clean/images/top_5_ch4.png")
 
-# # plot grouped data as heatmap
-# plot_heatmap(co2_grouped_norm, "clean/images/co2_grouped_norm.png")
-# plot_heatmap(co2_grouped_norm_contry, "clean/images/co2_grouped_norm_contry.png")
-#
-# plot_heatmap(ch4_grouped_norm, "clean/images/ch4_grouped_norm.png")
-# plot_heatmap(ch4_grouped_norm_contry, "clean/images/ch4_grouped_norm_contry.png")
+
+
+
+
 

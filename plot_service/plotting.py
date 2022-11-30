@@ -9,9 +9,9 @@ def plot_heatmap(df, path):
     plt.savefig(path)
 
 def plot_pairplot(df, path):
-    penguins = sns.load_dataset("penguins")
-    sns.pairplot(penguins, hue="species")
-    plt.show()
+    sns.pairplot(df)
+    plt.title("Relationship between CO2 and CH4 emissions")
+    plt.savefig(path)
 
 
 def plot_top_emitters( df_top_emitters, path):
@@ -25,4 +25,11 @@ def plot_top_emitters( df_top_emitters, path):
 def plot_historgam(df: pd.DataFrame, countries: list, path):
     sns.histplot(data=df[countries], palette="tab10", kde=True)
     plt.title(f"CO2 emissions Histogram for {', '.join(countries)}")
+    plt.savefig(path)
+
+def plot_correlation(df, path):
+    sns.lmplot(x="co2", y="ch4", data=df, fit_reg=True)
+    plt.title(f"Correlation between CO2 and CH4 emissions")
+    plt.yscale('log')
+    plt.xscale('log')
     plt.savefig(path)

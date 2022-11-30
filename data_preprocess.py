@@ -6,6 +6,15 @@ import wget
 from zipfile import ZipFile
 import pandas as pd
 
+def make_directories():
+    os.makedirs("emissions_raw", exist_ok=True)
+    os.makedirs("data", exist_ok=True)
+    os.makedirs("clean", exist_ok=True)
+    os.makedirs("clean/combined", exist_ok=True)
+    os.makedirs("clean/images/", exist_ok=True)
+    os.makedirs("clean/images/heatmap", exist_ok=True)
+    os.makedirs("clean/images/pairplot", exist_ok=True)
+    os.makedirs("clean/images/correlation", exist_ok=True)
 
 def check_for_local_data(path: str):
     # check if data is already downloaded
@@ -49,6 +58,7 @@ def cleanup_data(path: str):
 
     return df
 
+
 def calculate_sum_emissions(df):
     # sum up all the rows and save in new row
     new_df = df.sum()
@@ -56,6 +66,7 @@ def calculate_sum_emissions(df):
 
 
 def save_data(df, path):
+    # index as column
     # save data as csv
     df.to_csv(path, index=True, header=True, sep=",")
 
@@ -70,3 +81,20 @@ def get_top_emitters(df, n):
     # return df but only with the top emitters
     return df[new_df.nlargest(n).index]
 
+def combine_emissions(df):
+    list_of_countries = {}
+    for country in df.columns:
+        if country.endswith("_co2"):
+            country_name = country.split("_co2")[0]
+            # check if country is in ch4_top_emitters
+            if country_name + "_ch4" in df.columns:
+                country_co2 = df[country]
+                country_ch4 = df[country_name + "_ch4"]
+                country_df = country_co2.to_frame().merge(country_ch4.to_frame(), left_index=True, right_index=True,
+                                                          how="outer")
+                # rename first column to date
+                country_df.columns = ["co2", "ch4"]
+                list_of_countries[country_name] = country_df
+                save_data(country_df, "clean/combined/" + country_name + ".csv")
+
+    return list_of_countries
