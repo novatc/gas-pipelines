@@ -2,6 +2,7 @@ import pandas as pd
 from scipy.stats import pearsonr
 
 from data_preprocess import calculate_sum_for_year
+from plot_service.plotting import plot_correlation_population
 
 
 def person_correlation(df: pd.DataFrame):
@@ -21,6 +22,7 @@ def person_population_emissions(county_df, population_df):
 
     corr, _ = pearsonr(country["co2"], country[country.index.name])
     print(f'Pearsons correlation between CO2 and population for {country.index.name}: %.3f' % corr)
+    plot_correlation_population(country, path="clean/images/correlation/population" + country.index.name + ".png")
 
 
 

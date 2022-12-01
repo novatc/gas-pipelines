@@ -34,6 +34,15 @@ def plot_correlation(df, path):
     plt.tight_layout()
     plt.savefig(path)
 
+def plot_correlation_population(df, path):
+    sns.lmplot(x="co2", y=df.index.name, data=df, fit_reg=True, height=6, aspect=1.5)
+    plt.title(f"Correlation between CO2 and population for {df.index.name}")
+    plt.xlabel("CO2 emissions")
+    plt.ylabel("Population")
+    plt.yscale('log')
+    plt.tight_layout()
+    plt.savefig(path)
+    plt.clf()
 
 def plot_arma(name, train, test, y_pred_out, path, methode):
     plt.plot(train, color='black', label='Train')
