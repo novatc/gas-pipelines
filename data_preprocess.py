@@ -1,5 +1,6 @@
 import os
 import sys
+import warnings
 
 import matplotlib.pyplot as plt
 import wget
@@ -15,7 +16,21 @@ def make_directories():
     os.makedirs("clean/images/heatmap", exist_ok=True)
     os.makedirs("clean/images/pairplot", exist_ok=True)
     os.makedirs("clean/images/correlation", exist_ok=True)
-
+    os.makedirs("clean/images/forcasting", exist_ok=True)
+def download():
+    co2_data_dict = "data/co2_emissions_raw.zip"
+    ch4_data_dict = "data/ch4_emissions_raw.zip"
+    co2_unzip_path = "emissions_raw/CO2_2000_2021.xlsx"
+    ch4_unzip_path = "emissions_raw/CH4_2000_2021.xlsx"
+    co2_data_url = "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/EDGAR/datasets/v70_FT2021_GHG/v70_FT2021_CO2_m_2000_2021.zip"
+    ch4_data_url = "https://jeodpp.jrc.ec.europa.eu/ftp/jrc-opendata/EDGAR/datasets/v70_FT2021_GHG/v70_FT2021_CH4_m_2000_2021.zip"
+    warnings.filterwarnings("ignore")
+    make_directories()
+    download_data(co2_data_url, co2_data_dict)
+    download_data(ch4_data_url, ch4_data_dict)
+    co2_df = cleanup_data(co2_unzip_path)
+    ch4_df = cleanup_data(ch4_unzip_path)
+    return co2_df, ch4_df
 def check_for_local_data(path: str):
     # check if data is already downloaded
     if not os.path.exists(path):
@@ -58,6 +73,22 @@ def cleanup_data(path: str):
 
     return df
 
+def get_countries_from_data(df:pd.DataFrame, list_of_countries:list):
+    list_of_df = []
+    for country in list_of_countries:
+        country_co2 = country + "_co2"
+        country_ch4 = country + "_ch4"
+        country_df = df[country_co2].to_frame().merge(df[country_ch4].to_frame(), left_index=True, right_index=True, how="outer")
+        country_df.columns = ["co2", "ch4"]
+        country_df.index.name = country
+        list_of_df.append(country_df)
+
+    return list_of_df
+
+def merge_dataframes(df_co2, df_ch4):
+    df_co2.columns = [str(col) + '_co2' for col in df_co2.columns]
+    df_ch4.columns = [str(col) + '_ch4' for col in df_ch4.columns]
+    return df_co2.merge(df_ch4, left_index=True, right_index=True, how="outer")
 
 def calculate_sum_emissions(df):
     # sum up all the rows and save in new row
@@ -81,7 +112,7 @@ def get_top_emitters(df, n):
     # return df but only with the top emitters
     return df[new_df.nlargest(n).index]
 
-def combine_emissions(df):
+def combine_emissions(df: pd.DataFrame):
     list_of_countries = {}
     for country in df.columns:
         if country.endswith("_co2"):
