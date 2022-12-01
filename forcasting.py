@@ -1,3 +1,5 @@
+import warnings
+
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -17,53 +19,79 @@ def linear_regression(df: pd.DataFrame):
 
     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
     model.fit(X_train, Y_train)
-    slope  = model.coef_[0][0]
+    slope = model.coef_[0][0]
     intercept = model.intercept_[0]
     prediction = model.predict(X_test)
 
-def arma_co2(df: pd.DataFrame):
+
+def SARIMA_co2(forcasting: pd.DataFrame):
+    df = forcasting.copy()
+    warnings.filterwarnings("ignore")
     df.drop(columns='ch4', inplace=True)
     train = df[:-12]
     test = df.tail(12)
 
     y = train['co2']
-    ARMAmodel = SARIMAX(y, order=(1, 0, 1))
-    ARMAmodel = ARMAmodel.fit()
+    SARIMAmodel = SARIMAX(y, order=(5, 4, 3), seasonal_order=(1, 1, 1, 12))
+    SARIMAmodel = SARIMAmodel.fit()
 
-    y_pred = ARMAmodel.get_forecast(test.shape[0])
-    y_pred_df = y_pred.conf_int(alpha=0.05)
-    y_pred_df["Predictions"] = ARMAmodel.predict(start=y_pred_df.index[0], end=y_pred_df.index[-1])
-    y_pred_df.index = test.index
-    y_pred_out = y_pred_df["Predictions"]
+    y_pred_SARIMA = SARIMAmodel.get_forecast(test.shape[0])
+    y_pred_df_SARIMA = y_pred_SARIMA.conf_int(alpha=0.05)
+    y_pred_df_SARIMA["Predictions"] = SARIMAmodel.predict(start=y_pred_df_SARIMA.index[0],
+                                                          end=y_pred_df_SARIMA.index[-1])
+    y_pred_df_SARIMA.index = test.index
+    y_pred_out_SARIMA = y_pred_df_SARIMA["Predictions"]
 
-    arma_rmse = np.sqrt(mean_squared_error(test["co2"].values, y_pred_df["Predictions"]))
-    print("ARMA RMSE: ", arma_rmse)
+    SARIMA_rmse = np.sqrt(mean_squared_error(test["co2"].values, y_pred_df_SARIMA["Predictions"]))
+    print("SARIMA RMSE: ", SARIMA_rmse)
 
+    plot_arma(df.index.name, train, test, y_pred_out_SARIMA, f"clean/images/forcasting/{df.index.name}_sarima_co2.jpg",
+              "SARIMA")
+
+
+def ARIMA_co2(forcasting: pd.DataFrame):
+    df = forcasting.copy()
+    warnings.filterwarnings("ignore")
+    df.drop(columns='ch4', inplace=True)
+    train = df[:-12]
+    test = df.tail(12)
+
+    y = train['co2']
     ARIMAmodel = ARIMA(y, order=(5, 4, 3))
     ARIMAmodel = ARIMAmodel.fit()
 
-    y_pred = ARIMAmodel.get_forecast(test.shape[0])
-    y_pred_df_ARIMA = y_pred.conf_int(alpha=0.05)
-    y_pred_df_ARIMA["Predictions"] = ARIMAmodel.predict(start=y_pred_df_ARIMA.index[0], end=y_pred_df.index[-1])
+    y_pred_ARIMA = ARIMAmodel.get_forecast(test.shape[0])
+    y_pred_df_ARIMA = y_pred_ARIMA.conf_int(alpha=0.05)
+    y_pred_df_ARIMA["Predictions"] = ARIMAmodel.predict(start=y_pred_df_ARIMA.index[0], end=y_pred_df_ARIMA.index[-1])
     y_pred_df_ARIMA.index = test.index
     y_pred_out_ARIMA = y_pred_df_ARIMA["Predictions"]
 
     ARIMA_rmse = np.sqrt(mean_squared_error(test["co2"].values, y_pred_df_ARIMA["Predictions"]))
     print("ARIMA RMSE: ", ARIMA_rmse)
 
-    SARIMAXmodel = SARIMAX(y, order=(5, 4, 2), seasonal_order=(2, 2, 2, 12))
-    SARIMAXmodel = SARIMAXmodel.fit()
-
-    y_pred = SARIMAXmodel.get_forecast(test.shape[0])
-    y_pred_df_SARIMAX = y_pred.conf_int(alpha=0.05)
-    y_pred_df_SARIMAX["Predictions"] = SARIMAXmodel.predict(start=y_pred_df_SARIMAX.index[0], end=y_pred_df.index[-1])
-    y_pred_df_SARIMAX.index = test.index
-    y_pred_out_SARIMAX = y_pred_df_SARIMAX["Predictions"]
-
-    SARIMAX_rmse = np.sqrt(mean_squared_error(test["co2"].values, y_pred_df_SARIMAX["Predictions"]))
-    print("RMSE: ", SARIMAX_rmse)
+    plot_arma(df.index.name, train, test, y_pred_out_ARIMA, f"clean/images/forcasting/{df.index.name}_arima_co2.jpg",
+              "ARIMA")
 
 
-    plot_arma(train, test, y_pred_out, "clean/images/forcasting/arma_co2.jpg", "ARMA")
-    plot_arma(train, test, y_pred_out_ARIMA, "clean/images/forcasting/arima_co2.jpg", "ARIMA")
-    plot_arma(train, test, y_pred_out_SARIMAX, "clean/images/forcasting/sarimax_co2.jpg", "SARIMAX")
+def ARMA_co2(forcasting: pd.DataFrame):
+    df = forcasting.copy()
+    warnings.filterwarnings("ignore")
+    df.drop(columns='ch4', inplace=True)
+    train = df[:-12]
+    test = df.tail(12)
+
+    y = train['co2']
+    ARMAmodel = SARIMAX(y, order = (1, 0, 1))
+    ARMAmodel = ARMAmodel.fit()
+
+    y_pred = ARMAmodel.get_forecast(test.shape[0])
+    y_pred_df = y_pred.conf_int(alpha=0.05)
+    y_pred_df["Predictions"] = ARMAmodel.predict(start=y_pred_df.index[0], end=y_pred_df.index[-1])
+    y_pred_df.index = test.index
+    y_pred_out_ARMA = y_pred_df["Predictions"]
+
+    arma_rmse = np.sqrt(mean_squared_error(test["co2"].values, y_pred_df["Predictions"]))
+    print("ARMA RMSE: ", arma_rmse)
+
+    plot_arma(df.index.name, train, test, y_pred_out_ARMA, f"clean/images/forcasting/{df.index.name}_arma_co2.jpg",
+              "ARMA")

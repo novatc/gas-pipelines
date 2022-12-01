@@ -73,6 +73,13 @@ def cleanup_data(path: str):
 
     return df
 
+def get_population_data():
+    df = pd.read_csv("population/pop_clean.csv", on_bad_lines='skip', sep=';', index_col=0)
+    df = df.dropna()
+    df = df.astype('int64')
+    df = df.T
+    return df
+
 def get_countries_from_data(df:pd.DataFrame, list_of_countries:list):
     list_of_df = []
     for country in list_of_countries:
@@ -90,10 +97,13 @@ def merge_dataframes(df_co2, df_ch4):
     df_ch4.columns = [str(col) + '_ch4' for col in df_ch4.columns]
     return df_co2.merge(df_ch4, left_index=True, right_index=True, how="outer")
 
-def calculate_sum_emissions(df):
-    # sum up all the rows and save in new row
-    new_df = df.sum()
-    return new_df
+def calculate_sum_for_year(df):
+    name = df.index.name
+    # get the last 4 digits of the index and save it as year but keep index
+    df["year"] = df.index.str[-4:]
+    df = df.groupby('year').sum()
+    df.index.name = name
+    return df
 
 
 def save_data(df, path):

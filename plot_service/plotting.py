@@ -28,25 +28,29 @@ def plot_top_emitters(df_top_emitters, path):
 def plot_correlation(df, path):
     sns.lmplot(x="co2", y="ch4", data=df, fit_reg=True, height=6, aspect=1.5)
     plt.title(f"Correlation between CO2 and CH4 emissions for {df.index.name}")
+    plt.xlabel("CO2 emissions")
+    plt.ylabel("CH4 emissions")
     plt.yscale('log')
     plt.tight_layout()
     plt.savefig(path)
 
-def plot_arma (train, test,y_pred_out, path, methode):
+
+def plot_arma(name, train, test, y_pred_out, path, methode):
     plt.plot(train, color='black', label='Train')
     plt.plot(test, color='red', label='Test')
     plt.plot(y_pred_out, color='green', label='Predictions')
     plt.xlabel('Time')
     plt.ylabel('CO2 Emissions')
     plt.legend()
-    plt.title('Forecasting using {}'.format(methode))
+    plt.title(f'Forecasting for {name} using {methode}')
 
     plt.xticks(train.index[::20])
     plt.xticks(rotation=90)
     plt.tight_layout()
-
     plt.savefig(path)
     plt.clf()
+
+
 def visualize(df_list: list):
     # plot heatmap
     for country in df_list:
