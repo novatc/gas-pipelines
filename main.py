@@ -18,7 +18,7 @@ parser.add_argument("-c", "--countries", nargs="+", help="List of countries to p
 parser.add_argument("--correlation", default=False, help="Calculate correlation", action=argparse.BooleanOptionalAction)
 parser.add_argument("--forcast", default=0, help="Position in the list of given countries", type=int)
 parser.add_argument("--arma", default=False, help="Use arma for forcasting", action=argparse.BooleanOptionalAction)
-parser.add_argument("lr", default=True, help="Linear Regression", action=argparse.BooleanOptionalAction)
+parser.add_argument("--lr", default=True, help="Linear Regression", action=argparse.BooleanOptionalAction)
 parser.add_argument("--keras", default=True, help="Use keras nodel for forcasting", action=argparse.BooleanOptionalAction)
 parser.add_argument("--pytroch", default=True, help="Use pytroch model for forcasting", action=argparse.BooleanOptionalAction)
 

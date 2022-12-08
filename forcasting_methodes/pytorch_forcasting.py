@@ -49,7 +49,7 @@ def pytorch_forcast(df: pd.DataFrame):
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
     # train the model for 100 epochs
-    for epoch in range(100):
+    for epoch in range(1000):
         # forward pass
         y_pred = model(x_train)
 
