@@ -11,15 +11,17 @@ def to_datetime(date_string):
     return datetime.strptime(date_string, date_format)
 
 def keras_forcast(df: pd.DataFrame):
-    name = df.columns[0]
-    df.index = df.iloc[:, 0].apply(to_datetime)
+    df_copy = df.copy()
+    df_copy.reset_index(inplace=True)
+    name = df_copy.columns[0]
+    df_copy.index = df_copy.iloc[:, 0].apply(to_datetime)
 
     # turn the index into timestampes
-    df["date"] = df.index.map(datetime.timestamp)
+    df_copy["date"] = df_copy.index.map(datetime.timestamp)
 
     # let x be the co2 and the date_float column
-    x = df[["co2", "date"]].values
-    y = df["ch4"].values
+    x = df_copy[["co2", "date"]].values
+    y = df_copy["ch4"].values
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
 
@@ -37,3 +39,19 @@ def keras_forcast(df: pd.DataFrame):
     performance = model.evaluate(x_test, y_test, verbose=0)
 
     print(f"Keras Model performance: {performance}")
+
+    plot_forcast(predictions,y_test,x_test[:, 1], name)
+
+def plot_forcast(predictions, accurate_values,time, name):
+    date = [datetime.fromtimestamp(x) for x in time]
+
+    fig, ax = plt.subplots()
+    ax.scatter(date, predictions, label="predictions", color="red")
+    ax.scatter(date, accurate_values, label="actual", color="blue")
+
+    plt.xlabel("Time")
+    plt.ylabel("CH4 emissions")
+    plt.title("Predicted output over time")
+    plt.legend()
+    plt.savefig('clean/images/keras/' + name + '.png')
+    plt.clf()

@@ -18,6 +18,8 @@ def make_directories():
     os.makedirs("clean/images/correlation", exist_ok=True)
     os.makedirs("clean/images/arma", exist_ok=True)
     os.makedirs("clean/images/lr/", exist_ok=True)
+    os.makedirs("clean/images/pytorch/", exist_ok=True)
+    os.makedirs("clean/images/keras/", exist_ok=True)
 def download():
     co2_data_dict = "data/co2_emissions_raw.zip"
     ch4_data_dict = "data/ch4_emissions_raw.zip"

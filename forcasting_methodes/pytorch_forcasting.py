@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pandas as pd
 import torch
+from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split
 from torch import nn
 
@@ -24,16 +25,19 @@ def to_datetime(date_string):
     date_format = "%b %Y"
     return datetime.strptime(date_string, date_format)
 
-def pytorch_forcast(df: pd.DataFrame):
-    name = df.columns[0]
-    df.index = df.iloc[:, 0].apply(to_datetime)
+def pytorch_forcast(dfdf: pd.DataFrame):
+    df_copy = dfdf.copy()
+    df_copy.reset_index(inplace=True)
+    name = df_copy.columns[0]
+    df_copy.index = df_copy.iloc[:, 0].apply(to_datetime)
 
     # turn the index into timestampes
-    df["date"] = df.index.map(datetime.timestamp)
+    df_copy["date"] = df_copy.index.map(datetime.timestamp)
 
     # let x be the co2 and the date_float column
-    x = df[["co2", "date"]].values
-    y = df["ch4"].values
+    x = df_copy[["co2", "date"]].values
+    y = df_copy["ch4"].values
+    date = df_copy["date"].values
 
     # convert the data to PyTorch tensors
     x = torch.tensor(x, dtype=torch.float)
@@ -49,7 +53,7 @@ def pytorch_forcast(df: pd.DataFrame):
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 
     # train the model for 100 epochs
-    for epoch in range(1000):
+    for epoch in range(100):
         # forward pass
         y_pred = model(x_train)
 
@@ -69,7 +73,26 @@ def pytorch_forcast(df: pd.DataFrame):
     predictions = model(x_test)
     performance = nn.MSELoss()(predictions, y_test)
     print("PyTroch Model loss:", performance.item())
+    time = date[-len(predictions):]
 
+    plot_forcast(predictions.detach().numpy(), y_test, time, name)
+
+def plot_forcast(predictions, accurate_values, time, name):
+    time = [datetime.fromtimestamp(x) for x in time]
+
+    fig, ax = plt.subplots()
+    ax.scatter(time, predictions, label="predictions", color="red")
+    ax.scatter(time, accurate_values, label="actual", color="blue")
+
+    plt.xlabel("Time")
+    plt.ylabel("CH4 emissions")
+    plt.title("Predicted output over time")
+
+    plt.setp(ax.get_xticklabels(), rotation=90, ha="right", rotation_mode="anchor")
+
+    plt.legend()
+    plt.savefig('clean/images/pytorch/' + name + '.png')
+    plt.clf()
 
 
 

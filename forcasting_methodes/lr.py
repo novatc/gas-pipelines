@@ -12,17 +12,18 @@ def to_datetime(date_string):
     return datetime.strptime(date_string, date_format)
 
 def linear_regression(df: pd.DataFrame):
-    df.reset_index(inplace=True)
-    name = df.columns[0]
+    df_copy = df.copy()
+    df_copy.reset_index(inplace=True)
+    name = df_copy.columns[0]
 
-    df.index = df.iloc[:, 0].apply(to_datetime)
+    df_copy.index = df_copy.iloc[:, 0].apply(to_datetime)
 
     # turn the index into timestampes
-    df["date"] = df.index.map(datetime.timestamp)
+    df_copy["date"] = df_copy.index.map(datetime.timestamp)
 
     # let x be the co2 and the date_float column
-    x = df[["co2", "date"]].values
-    y = df["ch4"].values
+    x = df_copy[["co2", "date"]].values
+    y = df_copy["ch4"].values
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
 
@@ -45,16 +46,11 @@ def plot_lr(predictions: list, acctual: list, time, name):
     ax.scatter(date, predictions, label="predictions", color="red")
     ax.scatter(date, acctual, label="actual", color="blue")
 
-    plt.xlabel("CH4 emissions")
-    plt.ylabel("Time")
+    plt.xlabel("Time")
+    plt.ylabel("CH4 emissions")
     plt.title("Predicted output over time")
 
     plt.legend()
     plt.savefig('clean/images/lr/' + name + '_lr.png')
     plt.clf()
 
-def plot_f(slop, intercept):
-    x = np.linspace(0, 10, 100)
-    y = slop * x + intercept
-    plt.plot(x, y)
-    plt.show()
