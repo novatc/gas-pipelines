@@ -16,7 +16,8 @@ def make_directories():
     os.makedirs("clean/images/heatmap", exist_ok=True)
     os.makedirs("clean/images/pairplot", exist_ok=True)
     os.makedirs("clean/images/correlation", exist_ok=True)
-    os.makedirs("clean/images/forcasting", exist_ok=True)
+    os.makedirs("clean/images/arma", exist_ok=True)
+    os.makedirs("clean/images/lr/", exist_ok=True)
 def download():
     co2_data_dict = "data/co2_emissions_raw.zip"
     ch4_data_dict = "data/ch4_emissions_raw.zip"
@@ -70,6 +71,7 @@ def cleanup_data(path: str):
     df.sort_index(inplace=True)
     # get month name and year as index
     df.index = df.index.strftime("%b %Y")
+    # rename the first column to date
 
     return df
 
