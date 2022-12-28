@@ -25,6 +25,12 @@ parser.add_argument("--pytroch", default=True, help="Use pytroch model for forca
 args = parser.parse_args()
 
 co2_df, ch4_df = download()
+# save the df
+save_data(co2_df, "clean/co2.csv")
+save_data(ch4_df, "clean/ch4.csv")
+
+
+
 population_df = get_population_data()
 
 combined_emissions = merge_dataframes(co2_df, ch4_df)
