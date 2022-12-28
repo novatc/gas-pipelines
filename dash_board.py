@@ -24,7 +24,18 @@ app.layout = html.Div(children=[
         options=co2_df.columns,
         value=['Germany', 'United States', 'China'],
         multi=True),
-    dcc.Graph(id='graph_overview_ch4')
+    dcc.Graph(id='graph_overview_ch4'),
+
+    html.H1(children='Co2 Emission destribution'),
+    html.P(children='Select a country and compare the emission distribution of co2 and ch4'),
+    dcc.Dropdown(
+        id='dropdown_distribution_co2',
+        options=co2_df.columns,
+        value=['Germany', 'United States', 'China'],
+        multi=True,
+        clearable=False),
+    dcc.Graph(id='graph_distribution_co2'),
+
 ])
 
 
@@ -44,6 +55,14 @@ def update_graph_overview_ch4(dim):
     # get first column of df
     fig = px.scatter(ch4_df, x=ch4_df.columns[0], y=dim, )
     return fig
+
+@app.callback(
+    Output('graph_distribution_co2', 'figure'),
+    Input('dropdown_distribution_co2', 'value'))
+def histogram_plot(dim):
+    fig = px.histogram(co2_df, x=co2_df.columns[0], y=dim)
+    return fig
+
 
 
 app.run_server(debug=True)
