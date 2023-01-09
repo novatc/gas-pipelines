@@ -44,7 +44,6 @@ def pytorch_forcast(dfdf: pd.DataFrame):
     y = torch.tensor(y, dtype=torch.float)
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
-    print(x_train.shape, y_train.shape)
 
     model = TimeSeriesModel()
 
