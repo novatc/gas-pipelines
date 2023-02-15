@@ -2,6 +2,7 @@ import warnings
 
 import numpy as np
 import pandas as pd
+import statsmodels.api as sm
 from matplotlib import pyplot as plt
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
@@ -32,7 +33,7 @@ def SARIMA_co2(forcasting: pd.DataFrame):
     test = df.tail(12)
 
     y = train['co2']
-    SARIMAmodel = SARIMAX(y, order=(5, 4, 3), seasonal_order=(1, 1, 1, 12))
+    SARIMAmodel = sm.tsa.SARIMAX(y, order=(0,1,0), seasonal_order=(1, 0, 0, 12), enforce_stationarity=False)
     SARIMAmodel = SARIMAmodel.fit()
 
     y_pred_SARIMA = SARIMAmodel.get_forecast(test.shape[0])
@@ -43,10 +44,16 @@ def SARIMA_co2(forcasting: pd.DataFrame):
     y_pred_out_SARIMA = y_pred_df_SARIMA["Predictions"]
 
     SARIMA_rmse = np.sqrt(mean_squared_error(test["co2"].values, y_pred_df_SARIMA["Predictions"]))
-    print("SARIMA RMSE: ", SARIMA_rmse)
 
-    plot_arma(df.index.name, train, test, y_pred_out_SARIMA, f"clean/images/forcasting/{df.index.name}_sarima_co2.jpg",
-              "SARIMA")
+    # put test and prediction in one dataframe for plotting
+    test["Predictions"] = y_pred_df_SARIMA["Predictions"]
+    print(test.columns)
+
+
+
+    # plot_arma(df.index.name, train, test, y_pred_out_SARIMA, f"clean/images/forcasting/{df.index.name}_sarima_co2.jpg",
+    #           "SARIMA")
+    return test
 
 
 def ARIMA_co2(forcasting: pd.DataFrame):

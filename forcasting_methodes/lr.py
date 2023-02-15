@@ -29,7 +29,6 @@ def linear_regression(df: pd.DataFrame):
     y = df_copy["ch4"].values
 
     x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2)
-    mlflow.start_run()
     model = LinearRegression()
     model.fit(x_train, y_train)
     slope = model.coef_[0]
@@ -38,10 +37,6 @@ def linear_regression(df: pd.DataFrame):
     print(f"y = {slope}x + {intercept}")
     score = model.score(x_test, y_test)
     print(f"LR Model performance: {score}")
-    mlflow.log_param("model_type", "linear_regression")
-    mlflow.log_param("test_size", 0.2)
-    mlflow.log_metric("r2_score", score)
-    mlflow.sklearn.log_model(model, "model")
 
 
     plot_lr(y_pred, y_test, x_test[:, 1], name)
@@ -52,7 +47,34 @@ def linear_regression(df: pd.DataFrame):
     df_pred["date"] = df_pred["date"].apply(datetime.fromtimestamp)
     df_pred.set_index("date", inplace=True)
     df_pred.to_csv("clean/forcasting/lr_prediction.csv")
+    return df_pred
 
+def linear_regression_dash(data: pd.DataFrame, predict_steps=50):
+    # Convert the date column to a pandas datetime object
+    data['time'] = pd.to_datetime(data.index, format='%b %Y')
+
+    # Sort the data by date
+    data = data.sort_values('time')
+
+    # Create a linear regression model using scikit-learn
+    X = data['time'].values.reshape(-1, 1)
+    y = data['co2'].values.reshape(-1, 1)
+    model = LinearRegression()
+    model.fit(X, y)
+
+    # Predict the next 10 steps
+    next_steps = predict_steps
+    last_date = data['time'].iloc[-1]
+    next_dates = pd.date_range(start=last_date, periods=next_steps + 1, freq='MS')[1:]
+    next_X = pd.DataFrame(next_dates, columns=['time']).reset_index(drop=True)
+    next_X['index'] = next_X.index
+    next_y = model.predict(next_X['index'].values.reshape(-1, 1))
+
+    # Add the predicted values to the original DataFrame
+    next_data = pd.DataFrame({'time': next_dates, 'co2': next_y.ravel()})
+    data = pd.concat([data, next_data])
+
+    return data
 
 def plot_lr(predictions: list, acctual: list, time, name):
 

@@ -7,6 +7,7 @@ import wget
 from zipfile import ZipFile
 import pandas as pd
 
+
 def make_directories():
     os.makedirs("emissions_raw", exist_ok=True)
     os.makedirs("data", exist_ok=True)
@@ -22,6 +23,8 @@ def make_directories():
     os.makedirs("clean/images/keras/", exist_ok=True)
     os.makedirs("clean/images/forcasting/", exist_ok=True)
     os.makedirs('clean/forcasting/', exist_ok=True)
+
+
 def download():
     co2_data_dict = "data/co2_emissions_raw.zip"
     ch4_data_dict = "data/ch4_emissions_raw.zip"
@@ -36,6 +39,8 @@ def download():
     co2_df = cleanup_data(co2_unzip_path)
     ch4_df = cleanup_data(ch4_unzip_path)
     return co2_df, ch4_df
+
+
 def check_for_local_data(path: str):
     # check if data is already downloaded
     if not os.path.exists(path):
@@ -79,6 +84,7 @@ def cleanup_data(path: str):
 
     return df
 
+
 def get_population_data():
     df = pd.read_csv("population/pop_clean.csv", on_bad_lines='skip', sep=';', index_col=0)
     df = df.dropna()
@@ -86,22 +92,46 @@ def get_population_data():
     df = df.T
     return df
 
-def get_countries_from_data(df:pd.DataFrame, list_of_countries:list):
+
+def get_countries_from_data(df: pd.DataFrame, list_of_countries: list):
     list_of_df = []
     for country in list_of_countries:
         country_co2 = country + "_co2"
         country_ch4 = country + "_ch4"
-        country_df = df[country_co2].to_frame().merge(df[country_ch4].to_frame(), left_index=True, right_index=True, how="outer")
+        country_df = df[country_co2].to_frame().merge(df[country_ch4].to_frame(), left_index=True, right_index=True,
+                                                      how="outer")
         country_df.columns = ["co2", "ch4"]
         country_df.index.name = country
         list_of_df.append(country_df)
 
     return list_of_df
 
+
+def get_country_from_data(df: pd.DataFrame, country: str):
+    country_co2 = country
+    country_ch4 = country
+    country_df = df[country_co2].to_frame().merge(df[country_ch4].to_frame(), left_index=True, right_index=True,
+                                                  how="outer")
+    country_df.columns = ["co2", "ch4"]
+    country_df.index.name = country
+
+    return country_df
+
+def get_country_from_data_with_index(df: pd.DataFrame, country: str) -> pd.DataFrame:
+    country_co2 = country
+    country_df = df[[country_co2]].copy()
+    country_df.columns = ["co2"]
+    country_df['date'] = df.iloc[:, 0]
+    country_df.set_index('date', inplace=True)
+    return country_df
+
+
+
 def merge_dataframes(df_co2, df_ch4):
     df_co2.columns = [str(col) + '_co2' for col in df_co2.columns]
     df_ch4.columns = [str(col) + '_ch4' for col in df_ch4.columns]
     return df_co2.merge(df_ch4, left_index=True, right_index=True, how="outer")
+
 
 def calculate_sum_for_year(df):
     name = df.index.name
@@ -127,6 +157,7 @@ def get_top_emitters(df, n):
     new_df = df.sum()
     # return df but only with the top emitters
     return df[new_df.nlargest(n).index]
+
 
 def combine_emissions(df: pd.DataFrame):
     list_of_countries = {}
