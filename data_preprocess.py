@@ -147,7 +147,6 @@ def calculate_sum_for_year(df):
     # get the last 4 digits of the index and save it as year but keep index
     df["year"] = df.index.str[-4:]
     df = df.groupby('year').sum()
-    df.index.name = name
     return df
 
 
