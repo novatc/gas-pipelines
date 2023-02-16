@@ -4,9 +4,10 @@ import plotly.express as px
 import plotly.graph_objs as go
 from sklearn.linear_model import LinearRegression
 
-from data_preprocess import get_country_from_data, get_country_from_data_with_index
+from data_preprocess import get_country_from_data, get_country_from_data_with_index, \
+    get_country_from_ch4_data_with_index
 from forcasting_methodes.forcasting import SARIMA_co2
-from forcasting_methodes.lr import linear_regression, linear_regression_dash
+from forcasting_methodes.lr import linear_regression, linear_regression_co2_dash, linear_regression_ch4_dash
 
 # get iris data from plotly
 co2_df = pd.read_csv('clean/co2.csv')
@@ -15,7 +16,8 @@ ch4_df = pd.read_csv('clean/ch4.csv')
 
 def setup_layout():
     emission_app.layout = html.Div(
-        children=intro() + overview_graph_c02() + overview_graph_ch4() + linear_regression_graph())
+        children=intro() + overview_graph_c02() + overview_graph_ch4() + linear_regression_graph() + linear_regression_graph_ch4()
+                 + histogram_co2())
 
 
 def intro():
@@ -68,19 +70,54 @@ def overview_graph_ch4():
     return [heading_ch4, dropdown_ch4, graph_ch4]
 
 
+def histogram_co2():
+    heading_ch4 = html.H2(
+        children='CO2 Emissions over the years for each country')
+    dropdown_ch4 = html.Div([
+        html.P(
+            children='Select the countries you want to see'),
+        dcc.Dropdown(
+            id='dropdown_histogram_co2',
+            options=ch4_df.columns,
+            value=['Germany', 'United States', 'China'],
+            multi=True
+        )])
+
+    graph_ch4 = dcc.Graph(id='graph_histogram_co2')
+
+    return [heading_ch4, dropdown_ch4, graph_ch4]
+
+
 def linear_regression_graph():
-    heading_regression = html.H2(children='Linear Regression')
+    heading_regression = html.H2(children='Linear Regression for Co2 Emissions')
     dropdown_regression = html.Div([
         html.P(
             children='Select the countries you want to see'),
         dcc.Dropdown(
-            id='dropdown_regression',
+            id='dropdown_regression_co2',
             options=co2_df.columns,
             value='Germany',
             multi=False
         )])
 
-    graph_regression = dcc.Graph(id='graph_regression')
+    graph_regression = dcc.Graph(id='graph_regression_co2')
+
+    return [heading_regression, dropdown_regression, graph_regression]
+
+
+def linear_regression_graph_ch4():
+    heading_regression = html.H2(children='Linear Regression for Ch4 Emissions')
+    dropdown_regression = html.Div([
+        html.P(
+            children='Select the countries you want to see'),
+        dcc.Dropdown(
+            id='dropdown_regression_ch4',
+            options=ch4_df.columns,
+            value='Germany',
+            multi=False
+        )])
+
+    graph_regression = dcc.Graph(id='graph_regression_ch4')
 
     return [heading_regression, dropdown_regression, graph_regression]
 
@@ -112,11 +149,11 @@ def update_graph_overview_ch4(dim):
 
 
 @emission_app.callback(
-    Output('graph_regression', 'figure'),
-    Input('dropdown_regression', 'value'))
-def update_graph_regression(country):
+    Output('graph_regression_co2', 'figure'),
+    Input('dropdown_regression_co2', 'value'))
+def update_graph_regression_co2(country):
     country_df = get_country_from_data_with_index(co2_df, country)
-    result_df = linear_regression_dash(country_df, 10)
+    result_df = linear_regression_co2_dash(country_df, 10)
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=result_df['time'], y=result_df['co2'], mode='lines', name='Actual'))
 
@@ -127,6 +164,36 @@ def update_graph_regression(country):
     # Update the layout of the plot
     fig.update_layout(title='CO2 Emissions Over Time', xaxis_title='Date', yaxis_title='CO2 Emissions')
 
+    return fig
+
+
+@emission_app.callback(
+    Output('graph_regression_ch4', 'figure'),
+    Input('dropdown_regression_ch4', 'value'))
+def update_graph_regression_ch4(country):
+    country_df = get_country_from_ch4_data_with_index(ch4_df, country)
+    result_df = linear_regression_ch4_dash(country_df, 10)
+    fig = go.Figure()
+    fig.add_trace(go.Scatter(x=result_df['time'], y=result_df['ch4'], mode='lines', name='Actual'))
+
+    # Add a scatter plot for the predicted values
+    fig.add_trace(
+        go.Scatter(x=result_df.iloc[-51:-1]['time'], y=result_df.iloc[-51:-1]['ch4'], mode='lines', name='Predicted'))
+
+    # Update the layout of the plot
+    fig.update_layout(title='CH4 Emissions Over Time', xaxis_title='Date', yaxis_title='CH4 Emissions')
+
+    return fig
+
+
+@emission_app.callback(
+    Output('graph_histogram_co2', 'figure'),
+    Input('dropdown_histogram_co2', 'value'))
+def update_graph_histogram_co2(dim):
+    # get first column of df
+    fig = px.histogram(co2_df, x=dim, title='Co2 Emissions over the years for each country', labels={
+        'value': 'Co2 Emissions', 'variable': 'Country', 'year': 'Year', 'index': 'Year', 'co2': 'Co2 Emissions',
+        'ch4': 'Ch4 Emissions', 'Unnamed: 0': 'Year'})
     return fig
 
 

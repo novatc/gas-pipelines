@@ -117,6 +117,7 @@ def get_country_from_data(df: pd.DataFrame, country: str):
 
     return country_df
 
+
 def get_country_from_data_with_index(df: pd.DataFrame, country: str) -> pd.DataFrame:
     country_co2 = country
     country_df = df[[country_co2]].copy()
@@ -125,6 +126,14 @@ def get_country_from_data_with_index(df: pd.DataFrame, country: str) -> pd.DataF
     country_df.set_index('date', inplace=True)
     return country_df
 
+
+def get_country_from_ch4_data_with_index(df: pd.DataFrame, country: str) -> pd.DataFrame:
+    country_ch4 = country
+    country_df = df[[country_ch4]].copy()
+    country_df.columns = ["ch4"]
+    country_df['date'] = df.iloc[:, 0]
+    country_df.set_index('date', inplace=True)
+    return country_df
 
 
 def merge_dataframes(df_co2, df_ch4):
