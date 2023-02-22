@@ -279,7 +279,6 @@ def update_graph_correlation(country_correlation):
     corr_ch4 = pd.read_csv('clean/ch4.csv')
     combined_correlation = merge_dataframes(corr_co2, corr_ch4)
     selected_country_correlation = get_country_from_data(combined_correlation, country_correlation)
-    print(selected_country_correlation.columns)
     fig = px.scatter(selected_country_correlation, x='co2', y='ch4', trendline='ols')
     return fig
 
