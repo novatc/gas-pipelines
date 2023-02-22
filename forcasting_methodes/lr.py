@@ -49,7 +49,7 @@ def linear_regression(df: pd.DataFrame):
     df_pred.to_csv("clean/forcasting/lr_prediction.csv")
     return df_pred
 
-def linear_regression_co2_dash(data: pd.DataFrame, predict_steps=50):
+def linear_regression_co2_dash(data: pd.DataFrame, predict_steps=100):
     # Convert the date column to a pandas datetime object
     data['time'] = pd.to_datetime(data.index, format='%b %Y')
 

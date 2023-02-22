@@ -108,8 +108,8 @@ def get_countries_from_data(df: pd.DataFrame, list_of_countries: list):
 
 
 def get_country_from_data(df: pd.DataFrame, country: str):
-    country_co2 = country
-    country_ch4 = country
+    country_co2 = country + "_co2"
+    country_ch4 = country + "_ch4"
     country_df = df[country_co2].to_frame().merge(df[country_ch4].to_frame(), left_index=True, right_index=True,
                                                   how="outer")
     country_df.columns = ["co2", "ch4"]
